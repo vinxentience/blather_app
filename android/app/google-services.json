@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "148539030492",
+    "project_id": "blather-app-f4e7b",
+    "storage_bucket": "blather-app-f4e7b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:148539030492:android:220b50f13e17aff762ad19",
+        "android_client_info": {
+          "package_name": "com.example.blather_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "148539030492-5qm9b1k7g6dbes0po559piukfuq99bnf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.blather_app",
+            "certificate_hash": "28aa6394b9b01b2d06e4309609c88af351e90a07"
+          }
+        },
+        {
+          "client_id": "148539030492-adfodfu65torhoipvmd6b6rc6uvmb93v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAV6bKzTt9ikCirShBB_kGJwdH-Rbwa8fM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "148539030492-adfodfu65torhoipvmd6b6rc6uvmb93v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
