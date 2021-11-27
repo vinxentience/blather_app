@@ -2,47 +2,35 @@
 
 import 'package:blather_app/customs/appbar.dart';
 import 'package:blather_app/customs/custom_tile.dart';
+import 'package:blather_app/models/contact_model.dart';
+import 'package:blather_app/provider/user_provider.dart';
+import 'package:blather_app/screens/widgets/contact_view.dart';
+import 'package:blather_app/screens/widgets/new_chat.dart';
+import 'package:blather_app/screens/widgets/quiet_box_widget.dart';
+import 'package:blather_app/screens/widgets/user_circle.dart';
 import 'package:blather_app/service/auth_service.dart';
+import 'package:blather_app/service/firebase_methods.dart';
 import 'package:blather_app/service/firebase_repository.dart';
 import 'package:blather_app/styles/constants.dart';
 import 'package:blather_app/styles/utils.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class ChatListScreen extends StatefulWidget {
-  ChatListScreen({Key? key}) : super(key: key);
-
-  @override
-  _ChatListScreenState createState() => _ChatListScreenState();
-}
-
-final FirebaseRepository _repository = FirebaseRepository();
-
-class _ChatListScreenState extends State<ChatListScreen> {
-  late String currentUserId = "";
-  late String initials = "";
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    _repository.getCurrentUser().then((user) {
-      setState(() {
-        currentUserId = user.uid;
-        initials = Utils.getInitials(user.displayName as String);
-      });
-    });
-  }
-
+class ChatListScreen extends StatelessWidget {
   CustomAppBar customAppBar(BuildContext context) {
+    final UserProvider userProvider = Provider.of<UserProvider>(context);
     return CustomAppBar(
       leading: IconButton(
         icon: Icon(
           Icons.menu_outlined,
           color: Colors.white,
         ),
-        onPressed: () {},
+        onPressed: () {
+          userProvider.refreshUser();
+        },
       ),
-      title: UserCircle(initials),
+      title: UserCircle(),
       centerTitle: true,
       actions: <Widget>[
         IconButton(
@@ -71,130 +59,45 @@ class _ChatListScreenState extends State<ChatListScreen> {
       backgroundColor: blackColor,
       appBar: customAppBar(context),
       floatingActionButton: NewChatButton(),
-      body: ChatListContainer(currentUserId),
+      body: ChatListContainer(),
     );
   }
 }
 
-class ChatListContainer extends StatefulWidget {
-  final String currentUserId;
-
-  const ChatListContainer(this.currentUserId);
-
-  @override
-  _ChatListContainerState createState() => _ChatListContainerState();
-}
-
-class _ChatListContainerState extends State<ChatListContainer> {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: ListView.builder(
-        padding: EdgeInsets.all(10),
-        itemCount: 10,
-        itemBuilder: (context, index) {
-          return CustomTile(
-            mini: false,
-            onTap: () {},
-            title: Text(
-              "Rachell Hofstetter",
-              style: TextStyle(
-                  color: Colors.white, fontFamily: "Arial", fontSize: 19),
-            ),
-            subtitle: Text(
-              "Hello there friend!",
-              style: TextStyle(
-                color: greyColor,
-                fontSize: 14,
-              ),
-            ),
-            leading: Container(
-              constraints: BoxConstraints(maxHeight: 60, maxWidth: 60),
-              child: Stack(
-                children: <Widget>[
-                  CircleAvatar(
-                    maxRadius: 30,
-                    backgroundColor: Colors.grey,
-                    backgroundImage: NetworkImage(
-                        "https://cdn1.dotesports.com/wp-content/uploads/2021/10/19205640/Webp.net-resizeimage-15.jpg"),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: Container(
-                      height: 13,
-                      width: 13,
-                      decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: onlineDotColor,
-                          border: Border.all(color: blackColor, width: 2)),
-                    ),
-                  )
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class UserCircle extends StatelessWidget {
-  final String text;
-
-  const UserCircle(this.text);
+class ChatListContainer extends StatelessWidget {
+  final FirebaseMethods _chatMethods = FirebaseMethods();
 
   @override
   Widget build(BuildContext context) {
+    final UserProvider userProvider = Provider.of<UserProvider>(context);
+
     return Container(
-      height: 40,
-      width: 40,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(50),
-        color: separatorColor,
-      ),
-      child: Stack(
-        children: <Widget>[
-          Align(
-            alignment: Alignment.center,
-            child: Text(
-              text,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: kPrimaryColor,
-                fontSize: 13,
-              ),
-            ),
+      child: StreamBuilder<QuerySnapshot>(
+          stream: _chatMethods.fetchContacts(
+            userId: userProvider.getUser.uid as String,
           ),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Container(
-              height: 12,
-              width: 12,
-              decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: blackColor, width: 2),
-                  color: onlineDotColor),
-            ),
-          )
-        ],
-      ),
-    );
-  }
-}
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              var docList = snapshot.data!.docs;
+              // if (docList.isEmpty) {
+              //   return QuiteBox();
+              // }
+              return ListView.builder(
+                padding: EdgeInsets.all(10),
+                itemCount: docList.length,
+                itemBuilder: (context, index) {
+                  Contact contact = Contact.fromMap(
+                      docList[index].data() as Map<String, dynamic>);
 
-class NewChatButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-          color: kPrimaryColor, borderRadius: BorderRadius.circular(50)),
-      child: Icon(
-        Icons.edit,
-        color: Colors.white,
-        size: 25,
-      ),
-      padding: EdgeInsets.all(15),
+                  return ContactView(
+                    contact: contact,
+                  );
+                },
+              );
+            }
+
+            return Center(child: CircularProgressIndicator());
+          }),
     );
   }
 }

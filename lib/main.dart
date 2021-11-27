@@ -1,11 +1,18 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:blather_app/pages/homepage.dart';
 import 'package:blather_app/pages/signin.dart';
+import 'package:blather_app/provider/image_upload_provider.dart';
+import 'package:blather_app/provider/user_provider.dart';
 import 'package:blather_app/screens/search.dart';
 import 'package:blather_app/screens/splashscreen.dart';
 import 'package:blather_app/service/auth_service.dart';
+import 'package:blather_app/service/firebase_methods.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +38,7 @@ class _AppState extends State<App> {
   /// directly inside [build].
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
   Widget currentPage = const Splash();
-  AuthClass authClass = AuthClass();
+  final FirebaseMethods _authMethods = FirebaseMethods();
   @override
   void initState() {
     super.initState();
@@ -55,18 +62,33 @@ class _AppState extends State<App> {
       builder: (context, snapshot) {
         // Once complete, show your application
         if (snapshot.connectionState == ConnectionState.done) {
-          return MaterialApp(
-            theme: ThemeData.dark().copyWith(
-              textTheme: GoogleFonts.latoTextTheme(
-                Theme.of(context).textTheme,
+          return MultiProvider(
+            providers: [
+              ChangeNotifierProvider(create: (_) => ImageUploadProvider()),
+              ChangeNotifierProvider(create: (_) => UserProvider()),
+            ],
+            child: MaterialApp(
+              theme: ThemeData.dark().copyWith(
+                textTheme: GoogleFonts.latoTextTheme(
+                  Theme.of(context).textTheme,
+                ),
+              ),
+              debugShowCheckedModeBanner: false,
+              initialRoute: '/',
+              routes: {
+                '/search': (context) => Search(),
+              },
+              home: FutureBuilder(
+                future: _authMethods.getCurrentUser(),
+                builder: (context, AsyncSnapshot<User> snapshot) {
+                  if (snapshot.hasData) {
+                    return Homepage();
+                  } else {
+                    return Splash();
+                  }
+                },
               ),
             ),
-            debugShowCheckedModeBanner: false,
-            initialRoute: '/',
-            routes: {
-              '/search': (context) => Search(),
-            },
-            home: currentPage,
           );
         }
 

@@ -1,6 +1,8 @@
 // ignore_for_file: prefer_const_constructors, avoid_unnecessary_containers, prefer_const_literals_to_create_immutables, prefer_final_fields, unnecessary_null_comparison
 
+import 'package:blather_app/models/user.dart';
 import 'package:blather_app/pages/homepage.dart';
+import 'package:blather_app/pages/signup.dart';
 import 'package:blather_app/screens/chats.dart';
 import 'package:blather_app/service/auth_service.dart';
 import 'package:blather_app/service/firebase_repository.dart';
@@ -19,7 +21,8 @@ class Signin extends StatefulWidget {
 class _SigninState extends State<Signin> {
   FirebaseRepository _repository = FirebaseRepository();
   bool isLoginPressed = false;
-
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   void performLogin() {
     print("tring to perform login");
 
@@ -35,6 +38,21 @@ class _SigninState extends State<Signin> {
       }
     });
   }
+
+  void _loginWithEmail(String email, String password) {
+    _repository.signInUsingEmail(email, password).then((User user) {
+      if (user != null) {
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) {
+          return Homepage();
+        }));
+      } else {
+        print("There was an logging in.");
+      }
+    });
+  }
+
+  void _loginWithFacebook() {}
 
   void authenticateUser(User user) async {
     _repository.authenticateUser(user).then((isNewUser) {
@@ -96,6 +114,7 @@ class _SigninState extends State<Signin> {
                   borderRadius: BorderRadius.circular(29),
                 ),
                 child: TextField(
+                  controller: _emailController,
                   cursorColor: kPrimaryColor,
                   decoration: InputDecoration(
                     icon: Icon(
@@ -119,6 +138,7 @@ class _SigninState extends State<Signin> {
                   borderRadius: BorderRadius.circular(29),
                 ),
                 child: TextField(
+                  controller: _passwordController,
                   obscureText: _isObscure,
                   cursorColor: kPrimaryColor,
                   decoration: InputDecoration(
@@ -151,7 +171,10 @@ class _SigninState extends State<Signin> {
                     "Submit",
                     style: TextStyle(color: Colors.white),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    _loginWithEmail(
+                        _emailController.text, _passwordController.text);
+                  },
                   style: ElevatedButton.styleFrom(
                       primary: kPrimaryColor,
                       padding:
@@ -173,6 +196,12 @@ class _SigninState extends State<Signin> {
                     style: TextStyle(color: kPrimaryColor),
                   ),
                   GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => Signup()),
+                      );
+                    },
                     child: Text(
                       "Sign Up",
                       style: TextStyle(

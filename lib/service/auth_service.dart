@@ -123,17 +123,4 @@ class AuthClass {
     final List<DocumentSnapshot> docs = result.docs;
     return docs.isEmpty ? true : false;
   }
-
-  Future<List<User>> fetchAllUsers(User currentUser) async {
-    List<User> userlist = [];
-    QuerySnapshot querySnapshot =
-        await FirebaseFirestore.instance.collection("users").get();
-    for (var i = 0; i < querySnapshot.docs.length; i++) {
-      if (querySnapshot.docs[i].id != currentUser.uid) {
-        userlist.add(UserDetails.fromMap(
-            querySnapshot.docs[i].data() as Map<String, dynamic>) as User);
-      }
-    }
-    return userlist;
-  }
 }

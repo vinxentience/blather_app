@@ -17,10 +17,8 @@ class UserDetails {
     this.profilePhoto,
   });
 
-  get displayName => null;
-
   Map toMap(UserDetails user) {
-    var data = <String, dynamic>{};
+    var data = Map<String, dynamic>();
     data['uid'] = user.uid;
     data['name'] = user.name;
     data['email'] = user.email;
